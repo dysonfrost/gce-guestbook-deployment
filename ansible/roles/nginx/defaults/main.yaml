@@ -1,0 +1,24 @@
+---
+nginx_packages:
+  - nginx
+
+nginx_service_name: nginx
+
+nginx_sites_available_dir: /etc/nginx/sites-available
+nginx_sites_enabled_dir: /etc/nginx/sites-enabled
+
+# Frees the default_server slot on port 80.
+nginx_default_site_link: "{{ nginx_sites_enabled_dir }}/default"
+
+nginx_site_available: "{{ nginx_sites_available_dir }}/guestbook"
+nginx_site_enabled: "{{ nginx_sites_enabled_dir }}/guestbook"
+nginx_site_owner: root
+nginx_site_group: root
+nginx_site_mode: "0644"
+
+nginx_server_name: "_"
+nginx_listen_port: 80
+
+guestbook_root: "/var/www/guestbook"
+
+nginx_php_fpm_upstream: "unix:/run/php/php{{ php_version }}-fpm.sock"

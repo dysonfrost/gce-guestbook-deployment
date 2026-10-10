@@ -1,0 +1,33 @@
+---
+- name: Install nginx
+  ansible.builtin.apt:
+    name: "{{ nginx_packages }}"
+    state: present
+
+- name: Remove Debian default site
+  ansible.builtin.file:
+    path: "{{ nginx_default_site_link }}"
+    state: absent
+
+- name: Deploy guestbook server block
+  ansible.builtin.template:
+    src: guestbook.conf.j2
+    dest: "{{ nginx_site_available }}"
+    owner: "{{ nginx_site_owner }}"
+    group: "{{ nginx_site_group }}"
+    mode: "{{ nginx_site_mode }}"
+  notify: Reload nginx
+
+- name: Enable guestbook site
+  ansible.builtin.file:
+    src: "{{ nginx_site_available }}"
+    dest: "{{ nginx_site_enabled }}"
+    state: link
+    force: true
+  notify: Reload nginx
+
+- name: Enable and start nginx
+  ansible.builtin.systemd_service:
+    name: "{{ nginx_service_name }}"
+    enabled: true
+    state: started

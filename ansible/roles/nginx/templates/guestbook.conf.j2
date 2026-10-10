@@ -1,0 +1,31 @@
+# Managed by Ansible. Local edits will be overwritten.
+
+server {
+    listen {{ nginx_listen_port }} default_server;
+    server_name {{ nginx_server_name }};
+
+    server_tokens off;
+    client_max_body_size 1m;
+
+    root {{ guestbook_root }};
+    index index.php index.html;
+
+    location / {
+        try_files $uri $uri/ /index.php?$query_string;
+    }
+
+    location ~ \.php$ {
+        include snippets/fastcgi-php.conf;
+        fastcgi_pass {{ nginx_php_fpm_upstream }};
+    }
+
+    location ~ /\.ht {
+        deny all;
+    }
+
+    # /favicon.ico would otherwise hit PHP and inflate the counter.
+    location = /favicon.ico {
+        empty_gif;
+        access_log off;
+    }
+}
