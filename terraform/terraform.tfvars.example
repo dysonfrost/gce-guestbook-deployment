@@ -1,0 +1,8 @@
+# Copy to terraform.tfvars and fill in. Do not commit terraform.tfvars.
+
+project_id = "your-gcp-project-id"
+
+# Your public IP in CIDR, e.g. "203.0.113.7/32".
+ssh_allowed_ips = ["203.0.113.42/32"]
+
+environment = "lab"
