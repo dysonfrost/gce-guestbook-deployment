@@ -18,6 +18,11 @@ nginx_site_mode: "0644"
 
 nginx_server_name: "_"
 nginx_listen_port: 80
+nginx_listen_port_ssl: 443
+
+nginx_tls_dir: /etc/nginx/tls
+nginx_tls_crt: "{{ nginx_tls_dir }}/guestbook.crt"
+nginx_tls_key: "{{ nginx_tls_dir }}/guestbook.key"
 
 guestbook_root: "/var/www/guestbook"
 

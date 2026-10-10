@@ -9,6 +9,40 @@
     path: "{{ nginx_default_site_link }}"
     state: absent
 
+- name: Ensure TLS directory exists
+  ansible.builtin.file:
+    path: "{{ nginx_tls_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Read the VM public IP from the GCE metadata server
+  ansible.builtin.uri:
+    url: http://metadata.google.internal/computeMetadata/v1/instance/network-interfaces/0/access-configs/0/external-ip
+    headers:
+      Metadata-Flavor: Google
+    return_content: true
+  register: gce_metadata
+
+- name: Generate self-signed TLS certificate
+  ansible.builtin.command:
+    cmd: >-
+      openssl req -x509 -newkey rsa:2048 -sha256 -days 397 -nodes
+      -keyout {{ nginx_tls_key }}
+      -out {{ nginx_tls_crt }}
+      -subj "/CN=guestbook"
+      -addext "subjectAltName=IP:{{ gce_metadata.content | trim }}"
+    creates: "{{ nginx_tls_crt }}"
+  notify: Reload nginx
+
+- name: Set TLS key permissions
+  ansible.builtin.file:
+    path: "{{ nginx_tls_key }}"
+    owner: root
+    group: root
+    mode: "0600"
+
 - name: Deploy guestbook server block
   ansible.builtin.template:
     src: guestbook.conf.j2

@@ -43,9 +43,10 @@
       loop_control:
         label: "{{ item.item }}"
 
-    - name: Request the guestbook over HTTP
+    - name: Request the guestbook over HTTPS
       ansible.builtin.uri:
-        url: "http://localhost/"
+        url: "https://localhost/"
+        validate_certs: false
         return_content: true
         timeout: 10
       changed_when: false
@@ -58,7 +59,7 @@
           - guestbook_http.status | default(0) == 200
           - "'Guestbook' in (guestbook_http.content | default(''))"
         fail_msg: >-
-          http://localhost/ returned
+          https://localhost/ returned
           '{{ guestbook_http.status | default("no response") }}' with body
           '{{ guestbook_http.content | default("") | truncate(80) }}' -
           expected 200 with 'Guestbook' in the body.
