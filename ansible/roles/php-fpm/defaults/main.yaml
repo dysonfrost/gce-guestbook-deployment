@@ -30,4 +30,4 @@ guestbook_index_file: "{{ guestbook_root }}/index.php"
 guestbook_index_mode: "0644"
 
 guestbook_redis_socket: "/run/redis/redis.sock"
-guestbook_redis_key: "guestbook_hits"
+guestbook_redis_key: "guestbook:hits"

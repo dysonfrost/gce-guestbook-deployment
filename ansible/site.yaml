@@ -66,14 +66,14 @@
 
     - name: Write the Redis smoke-test key
       ansible.builtin.command:
-        cmd: redis-cli -s /run/redis/redis.sock SET smoke-test ok
+        cmd: redis-cli -s /run/redis/redis.sock SET guestbook:test:smoke ok EX 60
       changed_when: false
       failed_when: false
       register: redis_set
 
     - name: Read back the Redis smoke-test key
       ansible.builtin.command:
-        cmd: redis-cli -s /run/redis/redis.sock GET smoke-test
+        cmd: redis-cli -s /run/redis/redis.sock GET guestbook:test:smoke
       changed_when: false
       failed_when: false
       register: redis_get
@@ -83,6 +83,41 @@
         that:
           - redis_get.stdout | trim == 'ok'
         fail_msg: >-
-          redis-cli GET smoke-test returned
+          redis-cli GET guestbook:test:smoke returned
           '{{ redis_get.stdout | default("") | trim }}' instead of 'ok'
           (SET returned '{{ redis_set.stdout | default("") | trim }}').
+
+    - name: Clean up the Redis smoke-test key
+      ansible.builtin.command:
+        cmd: redis-cli -s /run/redis/redis.sock DEL guestbook:test:smoke
+      changed_when: false
+
+    - name: Verify persistence across restart
+      tags: persistence
+      block:
+        - name: Write a marker key
+          ansible.builtin.command:
+            cmd: redis-cli -s /run/redis/redis.sock SET guestbook:test:persistence ok EX 60
+          changed_when: false
+
+        - name: Restart redis
+          ansible.builtin.systemd_service:
+            name: redis-server
+            state: restarted
+          changed_when: false
+
+        - name: Read the marker back
+          ansible.builtin.command:
+            cmd: redis-cli -s /run/redis/redis.sock GET guestbook:test:persistence
+          changed_when: false
+          register: persist_check
+
+        - name: Assert the key survived
+          ansible.builtin.assert:
+            that:
+              - persist_check.stdout | trim == 'ok'
+
+        - name: Clean up the marker key
+          ansible.builtin.command:
+            cmd: redis-cli -s /run/redis/redis.sock DEL guestbook:test:persistence
+          changed_when: false

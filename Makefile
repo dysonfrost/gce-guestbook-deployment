@@ -4,7 +4,8 @@
 .DEFAULT_GOAL := help
 
 .PHONY: help init fmt validate plan apply destroy output \
-        ansible-hosts ansible-check ansible-run ansible-idempotency
+        ansible-hosts ansible-check ansible-run ansible-idempotency \
+        ansible-persistence
 
 help: ## Show this help message
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) \
@@ -57,3 +58,6 @@ ansible-idempotency: ## Run the playbook twice
 		ansible-playbook site.yaml && \
 		echo "--- second run (expect changed=0) ---" && \
 		ansible-playbook site.yaml | grep -E 'changed=0.*failed=0'
+
+ansible-persistence: ## Verify Redis persistence across a restart
+	cd ansible && ansible-playbook site.yaml --tags persistence
