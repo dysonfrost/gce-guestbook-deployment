@@ -1,0 +1,54 @@
+---
+- name: Install base packages
+  ansible.builtin.apt:
+    name: "{{ common_base_packages }}"
+    update_cache: true
+    cache_valid_time: "{{ common_apt_cache_valid_time }}"
+
+- name: Enable and start chrony
+  ansible.builtin.systemd_service:
+    name: chrony
+    enabled: true
+    state: started
+
+- name: Enable APT periodic upgrades
+  ansible.builtin.copy:
+    dest: /etc/apt/apt.conf.d/20-auto-upgrades
+    content: |
+      APT::Periodic::Update-Package-Lists "1";
+      APT::Periodic::Unattended-Upgrade "1";
+    owner: root
+    group: root
+    mode: "0644"
+
+- name: Ensure ssh is enabled and started
+  ansible.builtin.systemd_service:
+    name: "{{ common_ssh_service_name }}"
+    enabled: true
+    state: started
+
+- name: Ensure ssh drop-in directory exists
+  ansible.builtin.file:
+    path: "{{ common_ssh_dropin_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+- name: Apply SSH hardening
+  ansible.builtin.copy:
+    dest: "{{ common_ssh_dropin_file }}"
+    content: |
+      {% for directive, value in common_ssh_hardening.items() %}
+      {{ directive }} {{ value }}
+      {% endfor %}
+    owner: root
+    group: root
+    mode: "0644"
+  notify: Restart ssh
+
+# No Ansible module validates sshd config; call the binary directly.
+- name: Validate sshd configuration
+  ansible.builtin.command: /usr/sbin/sshd -t
+  changed_when: false
+  check_mode: false

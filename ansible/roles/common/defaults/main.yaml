@@ -1,0 +1,21 @@
+---
+common_apt_cache_valid_time: 3600
+
+common_base_packages:
+  - ca-certificates
+  - chrony
+  - curl
+  - gnupg
+  - python3
+  - sudo
+  - unattended-upgrades
+
+common_ssh_service_name: ssh
+
+common_ssh_hardening:
+  PermitRootLogin: "no"
+  PasswordAuthentication: "no"
+  X11Forwarding: "no"
+
+common_ssh_dropin_dir: /etc/ssh/sshd_config.d
+common_ssh_dropin_file: "{{ common_ssh_dropin_dir }}/10-hardening.conf"
