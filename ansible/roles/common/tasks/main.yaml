@@ -13,7 +13,7 @@
 
 - name: Enable APT periodic upgrades
   ansible.builtin.copy:
-    dest: /etc/apt/apt.conf.d/20-auto-upgrades
+    dest: /etc/apt/apt.conf.d/20auto-upgrades
     content: |
       APT::Periodic::Update-Package-Lists "1";
       APT::Periodic::Unattended-Upgrade "1";
