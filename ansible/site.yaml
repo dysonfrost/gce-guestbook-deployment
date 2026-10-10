@@ -104,7 +104,7 @@
           ansible.builtin.systemd_service:
             name: redis-server
             state: restarted
-          changed_when: false
+          changed_when: false # Test task, not a config change.
 
         - name: Read the marker back
           ansible.builtin.command:
@@ -116,6 +116,9 @@
           ansible.builtin.assert:
             that:
               - persist_check.stdout | trim == 'ok'
+            fail_msg: >-
+              The marker key did not survive the Redis restart. Persistence is not
+              working.
 
         - name: Clean up the marker key
           ansible.builtin.command:
