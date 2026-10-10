@@ -1,0 +1,87 @@
+---
+- name: Configure the guestbook stack
+  hosts: guestbook
+  become: true
+
+  vars:
+    php_version: "8.4"
+
+  roles:
+    - common
+    - redis
+    - php-fpm
+    - nginx
+
+  tasks:
+    # Handlers run at the end of the play. Flush them before validation,
+    # or Redis is still on its old config.
+    - name: Apply pending role handlers before validation
+      ansible.builtin.meta: flush_handlers
+
+    # Post-deployment validation.
+
+    - name: Check required services are active
+      ansible.builtin.command:
+        cmd: "systemctl is-active {{ item }}"
+      loop:
+        - redis-server
+        - "php{{ php_version }}-fpm"
+        - nginx
+      changed_when: false
+      failed_when: false
+      register: service_status
+
+    - name: Assert required services are active
+      ansible.builtin.assert:
+        that:
+          - item.rc == 0
+          - item.stdout | trim == 'active'
+        fail_msg: >-
+          Service '{{ item.item }}' is not active
+          (rc={{ item.rc }}, status='{{ item.stdout | default("") | trim }}').
+      loop: "{{ service_status.results }}"
+      loop_control:
+        label: "{{ item.item }}"
+
+    - name: Request the guestbook over HTTP
+      ansible.builtin.uri:
+        url: "http://localhost/"
+        return_content: true
+        timeout: 10
+      changed_when: false
+      failed_when: false
+      register: guestbook_http
+
+    - name: Assert the guestbook responds with HTTP 200
+      ansible.builtin.assert:
+        that:
+          - guestbook_http.status | default(0) == 200
+          - "'Guestbook' in (guestbook_http.content | default(''))"
+        fail_msg: >-
+          http://localhost/ returned
+          '{{ guestbook_http.status | default("no response") }}' with body
+          '{{ guestbook_http.content | default("") | truncate(80) }}' -
+          expected 200 with 'Guestbook' in the body.
+
+    - name: Write the Redis smoke-test key
+      ansible.builtin.command:
+        cmd: redis-cli -s /run/redis/redis.sock SET smoke-test ok
+      changed_when: false
+      failed_when: false
+      register: redis_set
+
+    - name: Read back the Redis smoke-test key
+      ansible.builtin.command:
+        cmd: redis-cli -s /run/redis/redis.sock GET smoke-test
+      changed_when: false
+      failed_when: false
+      register: redis_get
+
+    - name: Assert the Redis smoke-test key round-trips
+      ansible.builtin.assert:
+        that:
+          - redis_get.stdout | trim == 'ok'
+        fail_msg: >-
+          redis-cli GET smoke-test returned
+          '{{ redis_get.stdout | default("") | trim }}' instead of 'ok'
+          (SET returned '{{ redis_set.stdout | default("") | trim }}').
