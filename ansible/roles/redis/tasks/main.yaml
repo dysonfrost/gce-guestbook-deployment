@@ -1,0 +1,38 @@
+---
+- name: Install redis-server
+  ansible.builtin.apt:
+    name: "{{ redis_package }}"
+    state: present
+
+- name: Ensure redis drop-in directory exists
+  ansible.builtin.file:
+    path: "{{ redis_conf_dir }}"
+    state: directory
+    owner: root
+    group: root
+    mode: "0755"
+
+# Notified so a manual removal of the include is corrected on the next run.
+- name: Ensure redis.conf includes the drop-in directory
+  ansible.builtin.lineinfile:
+    path: "{{ redis_conf_file }}"
+    line: "{{ redis_conf_include_line }}"
+    regexp: '^\s*include\s+/etc/redis/redis\.conf\.d/\*\.conf\s*$'
+    insertafter: EOF
+    state: present
+  notify: Restart redis
+
+- name: Apply redis overrides
+  ansible.builtin.template:
+    src: 10-overrides.conf.j2
+    dest: "{{ redis_dropin_file }}"
+    owner: "{{ redis_dropin_owner }}"
+    group: "{{ redis_dropin_group }}"
+    mode: "{{ redis_dropin_mode }}"
+  notify: Restart redis
+
+- name: Enable and start redis-server
+  ansible.builtin.systemd_service:
+    name: "{{ redis_service_name }}"
+    enabled: true
+    state: started

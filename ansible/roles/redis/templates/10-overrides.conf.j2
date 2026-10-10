@@ -1,0 +1,12 @@
+# Managed by Ansible. Local edits will be overwritten.
+
+port {{ redis_port }}
+unixsocket {{ redis_unixsocket }}
+unixsocketperm {{ redis_unixsocketperm }}
+protected-mode {{ redis_protected_mode }}
+
+maxmemory {{ redis_maxmemory }}
+maxmemory-policy {{ redis_maxmemory_policy }}
+
+appendonly {{ redis_appendonly }}
+appendfsync {{ redis_appendfsync }}

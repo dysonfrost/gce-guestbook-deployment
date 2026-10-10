@@ -1,0 +1,24 @@
+---
+redis_package: redis-server
+redis_service_name: redis-server
+
+# Unix socket only; port 0 disables TCP.
+redis_unixsocket: "/run/redis/redis.sock"
+redis_unixsocketperm: "770"
+redis_port: 0
+redis_protected_mode: "yes"
+
+redis_maxmemory: 128mb
+redis_maxmemory_policy: noeviction
+
+redis_appendonly: "yes"
+redis_appendfsync: everysec
+
+redis_conf_file: /etc/redis/redis.conf
+redis_conf_dir: /etc/redis/redis.conf.d
+redis_conf_include_line: "include /etc/redis/redis.conf.d/*.conf"
+
+redis_dropin_file: "{{ redis_conf_dir }}/10-overrides.conf"
+redis_dropin_owner: root
+redis_dropin_group: redis
+redis_dropin_mode: "0640"
