@@ -1,0 +1,10 @@
+; Managed by Ansible. Local edits will be overwritten.
+; "zz-" makes this load last in pool.d.
+
+[www]
+user = {{ php_fpm_user }}
+group = {{ php_fpm_group }}
+listen = {{ php_fpm_listen }}
+pm = static
+pm.max_children = {{ php_fpm_max_children }}
+pm.max_requests = {{ php_fpm_max_requests }}

@@ -1,0 +1,59 @@
+---
+- name: Install PHP-FPM and extensions
+  ansible.builtin.apt:
+    name: "{{ php_fpm_packages }}"
+    state: present
+
+- name: Add www-data to redis group for socket access
+  ansible.builtin.user:
+    name: www-data
+    groups: redis
+    append: true
+  notify: Reload php-fpm
+
+- name: Ensure php-fpm.conf includes the pool directory
+  ansible.builtin.lineinfile:
+    path: "{{ php_fpm_conf_file }}"
+    line: "include={{ php_fpm_pool_dir }}/*.conf"
+    regexp: '^include=.*/pool\.d/\*\.conf\s*$'
+    insertafter: EOF
+    state: present
+
+- name: Ensure pool directory exists
+  ansible.builtin.file:
+    path: "{{ php_fpm_pool_dir }}"
+    state: directory
+    owner: "{{ php_fpm_dropin_owner }}"
+    group: "{{ php_fpm_dropin_group }}"
+    mode: "0755"
+
+- name: Deploy FPM pool overrides
+  ansible.builtin.template:
+    src: zz-overrides.conf.j2
+    dest: "{{ php_fpm_dropin_file }}"
+    owner: "{{ php_fpm_dropin_owner }}"
+    group: "{{ php_fpm_dropin_group }}"
+    mode: "{{ php_fpm_dropin_mode }}"
+  notify: Reload php-fpm
+
+- name: Ensure guestbook root exists
+  ansible.builtin.file:
+    path: "{{ guestbook_root }}"
+    state: directory
+    owner: "{{ guestbook_owner }}"
+    group: "{{ guestbook_group }}"
+    mode: "{{ guestbook_mode }}"
+
+- name: Deploy guestbook index.php
+  ansible.builtin.template:
+    src: index.php.j2
+    dest: "{{ guestbook_index_file }}"
+    owner: "{{ guestbook_owner }}"
+    group: "{{ guestbook_group }}"
+    mode: "{{ guestbook_index_mode }}"
+
+- name: Enable and start PHP-FPM
+  ansible.builtin.systemd_service:
+    name: "{{ php_fpm_service_name }}"
+    enabled: true
+    state: started

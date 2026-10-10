@@ -1,0 +1,33 @@
+---
+php_fpm_packages:
+  - php-fpm
+  - php-redis
+  - php-curl
+  - php-cli
+
+php_fpm_service_name: "php{{ php_version }}-fpm"
+
+php_fpm_conf_dir: "/etc/php/{{ php_version }}/fpm"
+php_fpm_conf_file: "{{ php_fpm_conf_dir }}/php-fpm.conf"
+php_fpm_pool_dir: "{{ php_fpm_conf_dir }}/pool.d"
+
+php_fpm_dropin_file: "{{ php_fpm_pool_dir }}/zz-overrides.conf"
+php_fpm_dropin_owner: root
+php_fpm_dropin_group: root
+php_fpm_dropin_mode: "0644"
+
+php_fpm_max_children: 2
+php_fpm_max_requests: 200
+php_fpm_listen: "/run/php/php{{ php_version }}-fpm.sock"
+php_fpm_user: www-data
+php_fpm_group: www-data
+
+guestbook_root: "/var/www/guestbook"
+guestbook_owner: www-data
+guestbook_group: www-data
+guestbook_mode: "0755"
+guestbook_index_file: "{{ guestbook_root }}/index.php"
+guestbook_index_mode: "0644"
+
+guestbook_redis_socket: "/run/redis/redis.sock"
+guestbook_redis_key: "guestbook_hits"
