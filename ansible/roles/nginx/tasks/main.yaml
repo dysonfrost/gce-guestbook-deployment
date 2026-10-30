@@ -28,7 +28,7 @@
 - name: Generate self-signed TLS certificate
   ansible.builtin.command:
     cmd: >-
-      openssl req -x509 -newkey rsa:2048 -sha256 -days 397 -nodes
+      openssl req -x509 -newkey rsa:2048 -sha256 -days 199 -nodes
       -keyout {{ nginx_tls_key }}
       -out {{ nginx_tls_crt }}
       -subj "/CN=guestbook"
