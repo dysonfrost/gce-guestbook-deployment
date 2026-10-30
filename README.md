@@ -133,3 +133,9 @@ Removes every resource this stack creates.
 ## HA roadmap
 
 See [HA-PROPOSAL.md](HA-PROPOSAL.md) for the production migration path.
+
+## License
+
+The code in this repository is licensed under the Apache License 2.0. See [LICENSE](LICENSE).
+
+The documentation (README, HA-PROPOSAL, and inline comments) is licensed under Creative Commons Attribution 4.0 International. See [LICENSE-docs](LICENSE-docs).
